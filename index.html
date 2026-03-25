@@ -3,23 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wlat Shade</title>
+    <title>Wlat Shade - Pergola Calculator</title>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.umd.js"></script>
+    <style>
+        body { margin: 0; background-color: #070209; }
+    </style>
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" src="index.jsx"></script>
+
     <script type="text/babel">
-        // ئەم بەشە وادەکات پڕۆژەکە دەست پێ بکات
-        window.onload = () => {
-            if (typeof App !== 'undefined') {
-                const root = ReactDOM.createRoot(document.getElementById('root'));
-                root.render(<App />);
-            }
-        };
+        // ناساندنی پارچەکانی Framer Motion بۆ ناو وێبگەڕ
+        const { motion, AnimatePresence, useSpring, useTransform } = window.Motion;
+        const { useState, useEffect } = React;
+
+        // ─── لێرەوە کۆدەکەی تۆ دەست پێ دەکات (وەک خۆی) ───
+        
+        function calculate({ system, rails, cephe, acilim }) {
+          const c = Number(cephe);
+          const a = Number(acilim);
+          const n = Number(rails);
+          if (!c || !a || c < 100 || a < 100) return null;
+
+          const rayLen     = a - 220;
+          const rayQty     = n;
+          const rayCode    = system === "110" ? "2001" : "2052";
+          const rayProfile = system === "70" ? "70×150" : system === "90" ? "90×150" : "110×150";
+
+          const olukLen     = c + 150;
+          const olukCode    = system === "110" ? "2078" : "2770";
+          const olukProfile = system === "110" ? "152×150" : "145×135";
+
+          const motorLen = c;
+
+          const dikmeLen     = 3000;
+          const dikmeQty     = n;
+          const dikmeCode    = system === "70" && n === 2 ? "6565" : "2111";
+          const dikmeProfile = system === "110" ? "110×145" : "100×100";
+          const dikmeName    = system === "70" ? "DİKME" : "AYAK";
+
+          let trapLen, trapQty;
+          if (system === "70") {
+            if (n === 2)      { trapLen = (rayLen - 70) / 2;  trapQty = 1; }
+            else if (n === 3) { trapLen = c / 2 - 105;        trapQty = 2; }
+            else              { trapLen = c / 3 - 93.33;       trapQty = 3; }
+          } else if (system === "90") {
+            if (n === 2)      { trapLen = (a - 730) / 2;       trapQty = 1; }
+            else if (n === 3) { trapLen = c / 2 - 135;         trapQty = 2; }
+            else              { trapLen = c / 3 - 120;          trapQty = 3; }
+          } else {
+            if (n === 2)      { trapLen = c - 180;             trapQty = 2; }
+            else if (n === 3) { trapLen = c / 2 - 135;         trapQty = 2; }
+            else              { trapLen = c / 3 - 120;          trapQty = 3; }
+          }
+
+          const kornisOffset  = system === "70" ? 20 : 40;
+          const inceLen       = trapLen + kornisOffset;
+          const kalinLen      = inceLen;
+          const kalinQty      = 2 * (n - 1);
+
+          const cadirBaseOffset = system === "70" ? 20 : 40;
+          const cadirC          = c - (cadirBaseOffset + 4 * n);
+          const cadirA          = a - 170;
+
+          const pitches    = { "70": 282, "90": 254, "110": 204.6 };
+          const inceChita  = cadirC / pitches[system];
+          const inceKornisQty = inceChita;
+          const kalinChita = 2;
+
+          return {
+            ray:         { len: Math.round(rayLen),          qty: rayQty,   code: rayCode,   profile: rayProfile,   name: "RAY"                        },
+            oluk:        { len: Math.round(olukLen),          qty: 1,        code: olukCode,  profile: olukProfile,  name: "OLUK"                       },
+            motor:       { len: Math.round(motorLen),         qty: 1,        code: "5312",    profile: "",           name: "MOTOR BORUSU"               },
+            dikme:       { len: dikmeLen,                     qty: dikmeQty, code: dikmeCode, profile: dikmeProfile, name: dikmeName                    },
+            trapez:      { len: +(trapLen.toFixed(2)),         qty: trapQty,  code: "37025",   profile: "",           name: "TRAPEZ PROFİLİ"             },
+            inceKornis:  { len: +(inceLen.toFixed(2)),         qty: +(inceKornisQty.toFixed(6)), code: "2653", profile: "", name: "İNCE KORNİŞ / İNCE ÇITA" },
+            kalinKornis: { len: +(kalinLen.toFixed(2)),        qty: kalinQty, code: "37216",   profile: "",           name: "KALIN KORNİŞ / KALIN ÇITA"  },
+            cadir: {
+              cephe:     Math.round(cadirC),
+              acilim:    Math.round(cadirA),
+              inceChita: +(inceChita.toFixed(6)),
+              kalinChita,
+            },
+          };
+        }
+
+        function AnimNum({ value, decimals = 0 }) {
+          const sp   = useSpring(0, { stiffness: 220, damping: 32 });
+          const disp = useTransform(sp, v =>
+            decimals > 0 ? v.toFixed(decimals) : Math.round(v).toLocaleString()
+          );
+          useEffect(() => { sp.set(Number(value) || 0); }, [value]);
+          return <motion.span>{disp}</motion.span>;
+        }
+
+        function ImgSlot({ src }) {
+          const [loaded, setLoaded] = useState(false);
+          return (
+            <div style={{
+              width: 80, height: 56, flexShrink: 0,
+              borderRadius: 14,
+              border: "1px solid rgba(154,13,55,0.24)",
+              background: "rgba(0,0,0,0.30)",
+              overflow: "hidden", position: "relative",
+              boxShadow: "0 2px 14px rgba(154,13,55,0.12), inset 0 0 14px rgba(154,13,55,0.06)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {src ? (
+                <img src={src} onLoad={() => setLoaded(true)}
+                  style={{ width:"100%", height:"100%", objectFit:"contain",
+                    mixBlendMode:"multiply", opacity: loaded ? 1 : 0, transition:"opacity 0.3s" }} alt="" />
+              ) : (
+                <div style={{
+                  width:"76%", height:"70%",
+                  border:"1.5px dashed rgba(154,13,55,0.26)",
+                  borderRadius:8,
+                }} />
+              )}
+              <div style={{
+                position:"absolute", inset:0,
+                background:"radial-gradient(ellipse at center,transparent 48%,rgba(6,2,4,0.55) 100%)",
+                pointerEvents:"none",
+              }} />
+            </div>
+          );
+        }
+
+        function Swatch({ color }) {
+          const isNamed = color && /^[a-zA-Z#]/.test(color.trim());
+          return (
+            <span style={{
+              display:"inline-block", width:9, height:9, borderRadius:"50%",
+              background: isNamed ? color : "rgba(154,13,55,0.5)",
+              border:"1px solid rgba(255,255,255,0.22)",
+              flexShrink:0, verticalAlign:"middle",
+            }} />
+          );
+        }
+
+        function ResultCard({ imgSrc, label, len, qty, code, isFractional, delay = 0 }) {
+          return (
+            <motion.div
+              initial={{ opacity:0, y:20, scale:0.97 }}
+              animate={{ opacity:1, y:0,  scale:1    }}
+              transition={{ delay, type:"spring", stiffness:300, damping:28 }}
+              style={{
+                display:"flex", alignItems:"center", gap:13,
+                background:"rgba(154,13,55,0.07)",
+                border:"1px solid rgba(154,13,55,0.18)",
+                borderRadius:16, padding:"13px 14px", marginBottom:9,
+                backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
+              }}
+            >
+              <ImgSlot src={imgSrc} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{
+                  fontSize:12, fontWeight:600, color:"#f0e8ec",
+                  letterSpacing:"0.3px", marginBottom:2,
+                  whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
+                }}>
+                  {label}
+                </div>
+                <div style={{ fontSize:9.5, color:"rgba(240,232,236,0.28)", letterSpacing:"1.2px", marginBottom:5 }}>
+                  #{code}
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ display:"flex", alignItems:"baseline", gap:3 }}>
+                    <span style={{ fontSize:22, fontWeight:700, color:"white", fontVariantNumeric:"tabular-nums" }}>
+                      <AnimNum value={Math.round(Number(len))} />
+                    </span>
+                    <span style={{ fontSize:9, color:"rgba(240,232,236,0.42)", letterSpacing:"1px" }}>mm</span>
+                  </div>
+                  <span style={{ color:"rgba(154,13,55,0.55)", fontSize:14 }}>×</span>
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", lineHeight:1 }}>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:3 }}>
+                      <span style={{ fontSize:22, fontWeight:700, color:"white", fontVariantNumeric:"tabular-nums" }}>
+                        {isFractional ? <AnimNum value={qty} decimals={4} /> : <AnimNum value={qty} />}
+                      </span>
+                      <span style={{ fontSize:9, color:"rgba(240,232,236,0.42)", letterSpacing:"1px" }}>adet</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        function SegControl({ options, value, onChange }) {
+          return (
+            <div style={{ display:"flex", background:"rgba(0,0,0,0.35)", borderRadius:13, padding:4, gap:4, marginBottom:18 }}>
+              {options.map(opt => (
+                <motion.button key={opt.value} onClick={() => onChange(opt.value)} whileTap={{ scale:0.92 }}
+                  style={{
+                    flex:1, padding:"9px 0", border:"none", borderRadius:9, cursor:"pointer",
+                    background: value === opt.value
+                      ? "linear-gradient(135deg,#9A0D37 0%,#c01548 100%)"
+                      : "transparent",
+                    color: value === opt.value ? "white" : "rgba(240,232,236,0.4)",
+                    fontSize:13, fontWeight:600, letterSpacing:"0.5px",
+                    boxShadow: value === opt.value ? "0 3px 14px rgba(154,13,55,0.42)" : "none",
+                    transition:"all 0.2s",
+                  }}
+                >
+                  {opt.label}
+                </motion.button>
+              ))}
+            </div>
+          );
+        }
+
+        function NumInput({ label, value, onChange }) {
+          const [f, setF] = useState(false);
+          return (
+            <div style={{ marginBottom:13 }}>
+              <label style={{ display:"block", fontSize:10, letterSpacing:"2px", textTransform:"uppercase",
+                color:"rgba(240,232,236,0.46)", marginBottom:5 }}>
+                {label}
+              </label>
+              <div style={{ position:"relative" }}>
+                <input type="number" value={value} placeholder=""
+                  onChange={e => onChange(e.target.value)}
+                  onFocus={() => setF(true)} onBlur={() => setF(false)}
+                  style={{
+                    width:"100%", padding:"12px 44px 12px 15px",
+                    background:"rgba(0,0,0,0.36)",
+                    border:`1px solid ${f ? "#9A0D37" : "rgba(255,255,255,0.09)"}`,
+                    borderRadius:13, color:"white",
+                    fontSize:16, outline:"none", transition:"all 0.18s",
+                  }}
+                />
+                <span style={{ position:"absolute", right:13, top:"50%", transform:"translateY(-50%)",
+                  fontSize:10, color:"rgba(240,232,236,0.28)", letterSpacing:"1px" }}>mm</span>
+              </div>
+            </div>
+          );
+        }
+
+        function TxtInput({ label, value, onChange }) {
+          const [f, setF] = useState(false);
+          return (
+            <div style={{ marginBottom:13 }}>
+              <label style={{ display:"block", fontSize:10, letterSpacing:"2px", textTransform:"uppercase",
+                color:"rgba(240,232,236,0.46)", marginBottom:5 }}>
+                {label}
+              </label>
+              <input type="text" value={value} placeholder=""
+                onChange={e => onChange(e.target.value)}
+                onFocus={() => setF(true)} onBlur={() => setF(false)}
+                style={{
+                  width:"100%", padding:"11px 14px",
+                  background:"rgba(0,0,0,0.30)",
+                  border:`1px solid ${f ? "#9A0D37" : "rgba(255,255,255,0.08)"}`,
+                  borderRadius:12, color:"white",
+                  fontSize:14, outline:"none", transition:"all 0.18s",
+                }}
+              />
+            </div>
+          );
+        }
+
+        function App() {
+          const [system,   setSystem]   = useState("70");
+          const [rails,    setRails]    = useState("2");
+          const [cephe,    setCephe]    = useState("");
+          const [acilim,   setAcilim]   = useState("");
+          const [alColor,  setAlColor]  = useState("");
+          const [fabColor, setFabColor] = useState("");
+          const [customer, setCustomer] = useState("");
+          const [result,   setResult]   = useState(null);
+
+          const today = new Date().toLocaleDateString("tr-TR");
+
+          const handleCalc = () => {
+            const r = calculate({ system, rails: Number(rails), cephe, acilim });
+            setResult(r);
+          };
+
+          return (
+            <div className="min-h-screen flex flex-col items-center p-4">
+              <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Zain:wght@400;700;800&display=swap');
+                body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #f0e8ec; }
+                .kurdish { font-family: 'Zain', sans-serif; }
+                .gc { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:22px; padding:22px; backdrop-filter:blur(20px); }
+              `}</style>
+              
+              <div className="w-full max-width-[500px] mt-10">
+                <header className="text-center mb-10">
+                  <div className="text-2xl font-bold tracking-widest text-white">WLAT <span className="text-[#9A0D37]">SHADE</span></div>
+                  <div className="kurdish text-2xl font-extrabold mt-2">حسابکردنی بڕینی پەرگۆلا</div>
+                </header>
+
+                <div className="gc mb-6">
+                  <SegControl value={system} onChange={setSystem} options={[{value:"70",label:"Ray 70"},{value:"90",label:"Ray 90"},{value:"110",label:"Ray 110"}]} />
+                  <div className="flex gap-2 mb-4">
+                    {["2","3","4"].map(r => (
+                      <button key={r} onClick={() => setRails(r)} className={`flex-1 p-2 rounded-xl border ${rails===r ? 'border-[#9A0D37] bg-[#9A0D37]/20 text-white' : 'border-white/10 text-white/40'}`}>{r} ڕەیل</button>
+                    ))}
+                  </div>
+                  <TxtInput label="کریار" value={customer} onChange={setCustomer} />
+                  <NumInput label="ڕوکار (mm)" value={cephe} onChange={setCephe} />
+                  <NumInput label="کرانەوە (mm)" value={acilim} onChange={setAcilim} />
+                  <button onClick={handleCalc} className="w-full p-4 mt-4 bg-[#9A0D37] rounded-2xl font-bold text-white shadow-lg shadow-[#9A0D37]/40">حساب بکە</button>
+                </div>
+
+                {result && (
+                  <div className="mt-8 space-y-4">
+                    <ResultCard label="ڕەیل" code={result.ray.code} len={result.ray.len} qty={result.ray.qty} />
+                    <ResultCard label="ئاوڕۆ" code={result.oluk.code} len={result.oluk.len} qty={result.oluk.qty} />
+                    <ResultCard label="ستوون" code={result.dikme.code} len={result.dikme.len} qty={result.dikme.qty} />
+                    <div className="gc p-4 text-center">
+                      <div className="text-xs opacity-50 mb-2">چادر (Çadır)</div>
+                      <div className="text-xl font-bold">{result.cadir.cephe} × {result.cadir.acilim} mm</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
