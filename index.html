@@ -2,24 +2,23 @@
 <html lang="ku" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover" />
   <title>WLAT SHADE — Pergola Kesim Hesabı</title>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Zain:wght@400;700;800&display=swap" rel="stylesheet" />
 
-  <!-- React & ReactDOM -->
-  <script src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <!-- React & ReactDOM - Production builds -->
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 
-  <!-- Framer Motion - corrected CDN -->
+  <!-- Framer Motion -->
   <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
 
   <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* Reset & Base Styles */
     *, *::before, *::after { 
       box-sizing: border-box; 
       margin: 0; 
@@ -36,7 +35,9 @@
 
     html, body, #root {
       height: 100%;
+      width: 100%;
       min-height: 100%;
+      position: relative;
     }
 
     body {
@@ -44,6 +45,13 @@
       background: #070209;
       color: var(--text);
       overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
     }
 
     /* Background with mesh gradient animation */
@@ -53,6 +61,8 @@
       z-index: 0;
       background: #070209;
       overflow: hidden;
+      width: 100%;
+      height: 100%;
     }
 
     .bg-wrap::before {
@@ -98,20 +108,23 @@
       100% { transform: translate(2%, 5%) scale(1.03); opacity: 0.9; }
     }
 
+    /* Scroll container - full screen with scroll */
     .scroll-root {
       position: relative;
       z-index: 1;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
     .app {
       width: 100%;
-      max-width: 500px;
-      padding: 0 16px 100px;
-      flex: 1;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px 16px 100px;
+      min-height: 100%;
     }
 
     .gc {
@@ -120,7 +133,6 @@
       border-radius: 22px;
       padding: 22px;
       backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
       margin-bottom: 14px;
     }
 
@@ -191,6 +203,11 @@
       gap: 9px;
       box-shadow: 0 6px 24px rgba(154, 13, 55, 0.42);
       animation: shimmer 4s ease infinite;
+      transition: transform 0.1s ease;
+    }
+
+    .cbtn:active {
+      transform: scale(0.98);
     }
 
     @keyframes shimmer {
@@ -223,7 +240,6 @@
 
     .pbtn:active {
       transform: scale(0.96);
-      background: rgba(154, 13, 55, 0.13);
     }
 
     .chips {
@@ -264,6 +280,7 @@
       body {
         background: white !important;
         color: black !important;
+        position: static !important;
       }
       .bg-wrap {
         display: none !important;
@@ -272,6 +289,10 @@
         display: block !important;
         padding: 24px;
         font-family: Arial, sans-serif;
+      }
+      .scroll-root {
+        height: auto !important;
+        overflow: visible !important;
       }
     }
 
@@ -282,34 +303,44 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+
+    input, button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Full screen adjustments */
+    @media (max-width: 480px) {
+      .app {
+        padding: 16px 12px 80px;
+      }
+      .gc {
+        padding: 18px;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
   <script type="text/babel">
+    // Safe framer motion import
     const { useState, useEffect } = React;
     
-    // Framer Motion'ı doğru şekilde al
     let motion, AnimatePresence, useSpring, useTransform;
     
-    if (typeof window !== 'undefined') {
-      const fm = window.framerMotion || window.FramerMotion || window.Motion;
-      if (fm) {
-        motion = fm.motion;
-        AnimatePresence = fm.AnimatePresence;
-        useSpring = fm.useSpring;
-        useTransform = fm.useTransform;
-      }
-    }
-    
-    // Fallback eğer framer motion yüklenmezse
-    if (!motion) {
-      motion = function(props) { return props.children; };
-      motion.div = function(props) { return props.children; };
-      motion.button = function(props) { return props.children; };
-      motion.span = function(props) { return props.children; };
-      AnimatePresence = function(props) { return props.children; };
+    if (typeof window !== 'undefined' && window.framerMotion) {
+      motion = window.framerMotion.motion;
+      AnimatePresence = window.framerMotion.AnimatePresence;
+      useSpring = window.framerMotion.useSpring;
+      useTransform = window.framerMotion.useTransform;
+    } else {
+      // Fallback components
+      motion = {
+        div: ({ children, ...props }) => <div {...props}>{children}</div>,
+        button: ({ children, ...props }) => <button {...props}>{children}</button>,
+        span: ({ children, ...props }) => <span {...props}>{children}</span>
+      };
+      AnimatePresence = ({ children }) => <>{children}</>;
       useSpring = () => ({ set: () => {} });
       useTransform = () => ({});
     }
@@ -319,7 +350,8 @@
       const c = Number(cephe);
       const a = Number(acilim);
       const n = Number(rails);
-      if (!c || !a || c < 100 || a < 100) return null;
+      
+      if (!c || !a || isNaN(c) || isNaN(a) || c < 100 || a < 100) return null;
 
       const rayLen = a - 220;
       const rayQty = n;
@@ -364,7 +396,6 @@
 
       const pitches = { "70": 282, "90": 254, "110": 204.6 };
       const inceChita = cadirC / pitches[system];
-      const inceKornisQty = inceChita;
       const kalinChita = 2;
 
       return {
@@ -372,13 +403,13 @@
         oluk: { len: Math.round(olukLen), qty: 1, code: olukCode, profile: olukProfile, name: "OLUK" },
         motor: { len: Math.round(motorLen), qty: 1, code: "5312", profile: "", name: "MOTOR BORUSU" },
         dikme: { len: dikmeLen, qty: dikmeQty, code: dikmeCode, profile: dikmeProfile, name: dikmeName },
-        trapez: { len: +(trapLen.toFixed(2)), qty: trapQty, code: "37025", profile: "", name: "TRAPEZ PROFİLİ" },
-        inceKornis: { len: +(inceLen.toFixed(2)), qty: +(inceKornisQty.toFixed(6)), code: "2653", profile: "", name: "İNCE KORNİŞ / İNCE ÇITA" },
-        kalinKornis: { len: +(kalinLen.toFixed(2)), qty: kalinQty, code: "37216", profile: "", name: "KALIN KORNİŞ / KALIN ÇITA" },
+        trapez: { len: Math.round(trapLen), qty: trapQty, code: "37025", profile: "", name: "TRAPEZ PROFİLİ" },
+        inceKornis: { len: Math.round(inceLen), qty: inceChita, code: "2653", profile: "", name: "İNCE KORNİŞ" },
+        kalinKornis: { len: Math.round(kalinLen), qty: kalinQty, code: "37216", profile: "", name: "KALIN KORNİŞ" },
         cadir: {
           cephe: Math.round(cadirC),
           acilim: Math.round(cadirA),
-          inceChita: +(inceChita.toFixed(6)),
+          inceChita: inceChita,
           kalinChita,
         },
       };
@@ -400,7 +431,6 @@
 
     // ─── IMAGE SLOT ──────────────────────────────────────────────────────────
     function ImgSlot({ src }) {
-      const [loaded, setLoaded] = useState(false);
       return (
         <div style={{
           width: 80, height: 56, flexShrink: 0,
@@ -411,17 +441,11 @@
           boxShadow: "0 2px 14px rgba(154,13,55,0.12), inset 0 0 14px rgba(154,13,55,0.06)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          {src ? (
-            <img src={src} onLoad={() => setLoaded(true)}
-              style={{ width: "100%", height: "100%", objectFit: "contain",
-                mixBlendMode: "multiply", opacity: loaded ? 1 : 0, transition: "opacity 0.3s" }} alt="" />
-          ) : (
-            <div style={{
-              width: "76%", height: "70%",
-              border: "1.5px dashed rgba(154,13,55,0.26)",
-              borderRadius: 8,
-            }} />
-          )}
+          <div style={{
+            width: "76%", height: "70%",
+            border: "1.5px dashed rgba(154,13,55,0.26)",
+            borderRadius: 8,
+          }} />
           <div style={{
             position: "absolute", inset: 0,
             background: "radial-gradient(ellipse at center,transparent 48%,rgba(6,2,4,0.55) 100%)",
@@ -445,26 +469,16 @@
     }
 
     // ─── RESULT CARD ─────────────────────────────────────────────────────────
-    function ResultCard({ imgSrc, label, len, qty, code, isFractional, delay = 0 }) {
-      const MotionDiv = motion?.div || 'div';
-      const Component = (props) => {
-        if (motion?.div) {
-          return <MotionDiv {...props} />;
-        }
-        return <div {...props} />;
-      };
-      
+    function ResultCard({ label, len, qty, code, isFractional }) {
       return (
-        <Component
-          style={{
-            display: "flex", alignItems: "center", gap: 13,
-            background: "rgba(154,13,55,0.07)",
-            border: "1px solid rgba(154,13,55,0.18)",
-            borderRadius: 16, padding: "13px 14px", marginBottom: 9,
-            backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-          }}
-        >
-          <ImgSlot src={imgSrc} />
+        <div style={{
+          display: "flex", alignItems: "center", gap: 13,
+          background: "rgba(154,13,55,0.07)",
+          border: "1px solid rgba(154,13,55,0.18)",
+          borderRadius: 16, padding: "13px 14px", marginBottom: 9,
+          backdropFilter: "blur(18px)",
+        }}>
+          <ImgSlot />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontSize: 12, fontWeight: 600, color: "#f0e8ec",
@@ -479,56 +493,45 @@
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontVariantNumeric: "tabular-nums", fontFamily: "var(--sys)" }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "var(--sys)" }}>
                   <AnimNum value={Math.round(Number(len))} />
                 </span>
-                <span style={{ fontSize: 9, color: "rgba(240,232,236,0.42)", letterSpacing: "1px", fontFamily: "var(--sys)" }}>mm</span>
+                <span style={{ fontSize: 9, color: "rgba(240,232,236,0.42)", fontFamily: "var(--sys)" }}>mm</span>
               </div>
               <span style={{ color: "rgba(154,13,55,0.55)", fontSize: 14 }}>×</span>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1 }}>
+              <div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontVariantNumeric: "tabular-nums", fontFamily: "var(--sys)" }}>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "var(--sys)" }}>
                     {isFractional ? <AnimNum value={qty} decimals={4} /> : <AnimNum value={qty} />}
                   </span>
-                  <span style={{ fontSize: 9, color: "rgba(240,232,236,0.42)", letterSpacing: "1px", fontFamily: "var(--sys)" }}>adet</span>
+                  <span style={{ fontSize: 9, color: "rgba(240,232,236,0.42)", fontFamily: "var(--sys)" }}>adet</span>
                 </div>
-                <span style={{ fontSize: 8, color: "rgba(240,232,236,0.18)", letterSpacing: "0.5px", marginTop: 2, fontFamily: "var(--krd)" }}>
-                  دانە
-                </span>
+                <span style={{ fontSize: 8, color: "rgba(240,232,236,0.18)", fontFamily: "var(--krd)" }}>دانە</span>
               </div>
             </div>
           </div>
-        </Component>
+        </div>
       );
     }
 
     // ─── SEGMENT CONTROL ─────────────────────────────────────────────────────
     function SegControl({ options, value, onChange }) {
-      const MotionButton = motion?.button || 'button';
-      const ButtonComponent = (props) => {
-        if (motion?.button) {
-          return <MotionButton {...props} />;
-        }
-        return <button {...props} />;
-      };
-      
       return (
         <div style={{ display: "flex", background: "rgba(0,0,0,0.35)", borderRadius: 13, padding: 4, gap: 4, marginBottom: 18 }}>
           {options.map(opt => (
-            <ButtonComponent key={opt.value} onClick={() => onChange(opt.value)}
+            <button key={opt.value} onClick={() => onChange(opt.value)}
               style={{
                 flex: 1, padding: "9px 0", border: "none", borderRadius: 9, cursor: "pointer",
                 background: value === opt.value
                   ? "linear-gradient(135deg,#9A0D37 0%,#c01548 100%)"
                   : "transparent",
                 color: value === opt.value ? "white" : "rgba(240,232,236,0.4)",
-                fontFamily: "var(--sys)", fontSize: 13, fontWeight: 600, letterSpacing: "0.5px",
+                fontFamily: "var(--sys)", fontSize: 13, fontWeight: 600,
                 boxShadow: value === opt.value ? "0 3px 14px rgba(154,13,55,0.42)" : "none",
-                transition: "all 0.2s",
               }}
             >
               {opt.label}
-            </ButtonComponent>
+            </button>
           ))}
         </div>
       );
@@ -536,7 +539,6 @@
 
     // ─── NUMBER INPUT ────────────────────────────────────────────────────────
     function NumInput({ label, value, onChange }) {
-      const [f, setF] = useState(false);
       return (
         <div style={{ marginBottom: 13 }}>
           <label style={{ display: "block", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase",
@@ -546,21 +548,17 @@
           <div style={{ position: "relative" }}>
             <input type="number" value={value} placeholder=""
               onChange={e => onChange(e.target.value)}
-              onFocus={() => setF(true)} onBlur={() => setF(false)}
               style={{
                 width: "100%", padding: "12px 44px 12px 15px",
                 background: "rgba(0,0,0,0.36)",
-                border: `1px solid ${f ? "#9A0D37" : "rgba(255,255,255,0.09)"}`,
+                border: "1px solid rgba(255,255,255,0.09)",
                 borderRadius: 13, color: "white",
                 fontFamily: "var(--sys)", fontSize: 16,
                 outline: "none",
-                boxShadow: f ? "0 0 0 3px rgba(154,13,55,0.14)" : "none",
-                transition: "all 0.18s",
               }}
             />
             <span style={{ position: "absolute", right: 13, top: "50%", transform: "translateY(-50%)",
-              fontSize: 10, color: "rgba(240,232,236,0.28)", letterSpacing: "1px", pointerEvents: "none",
-              fontFamily: "var(--sys)" }}>mm</span>
+              fontSize: 10, color: "rgba(240,232,236,0.28)", fontFamily: "var(--sys)" }}>mm</span>
           </div>
         </div>
       );
@@ -568,7 +566,6 @@
 
     // ─── TEXT INPUT ──────────────────────────────────────────────────────────
     function TxtInput({ label, value, onChange }) {
-      const [f, setF] = useState(false);
       return (
         <div style={{ marginBottom: 13 }}>
           <label style={{ display: "block", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase",
@@ -577,14 +574,13 @@
           </label>
           <input type="text" value={value} placeholder=""
             onChange={e => onChange(e.target.value)}
-            onFocus={() => setF(true)} onBlur={() => setF(false)}
             style={{
               width: "100%", padding: "11px 14px",
               background: "rgba(0,0,0,0.30)",
-              border: `1px solid ${f ? "#9A0D37" : "rgba(255,255,255,0.08)"}`,
+              border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: 12, color: "white",
               fontFamily: "var(--sys)", fontSize: 14,
-              outline: "none", transition: "all 0.18s",
+              outline: "none",
             }}
           />
         </div>
@@ -625,17 +621,15 @@
               {/* Header */}
               <header style={{ textAlign: "center", padding: "44px 0 26px" }}>
                 <div>
-                  <div style={{ fontFamily: "var(--sys)", fontSize: 26, fontWeight: 700, letterSpacing: 7, marginBottom: 10 }}>
+                  <div style={{ fontFamily: "var(--sys)", fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 700, letterSpacing: 7, marginBottom: 10 }}>
                     <span style={{ color: "#9A0D37" }}>WLAT</span>{' '}
-                    <span style={{ color: "white", textShadow: "0 0 12px rgba(255,255,255,0.9),0 0 28px rgba(255,255,255,0.38)" }}>
+                    <span style={{ color: "white", textShadow: "0 0 12px rgba(255,255,255,0.9)" }}>
                       SHADE
                     </span>
                   </div>
-                  <div style={{ fontFamily: "var(--krd)", fontSize: 22, fontWeight: 800, lineHeight: 1.4, marginBottom: 5, letterSpacing: "0.3px", direction: "rtl" }}>
+                  <div style={{ fontFamily: "var(--krd)", fontSize: "clamp(18px, 5vw, 26px)", fontWeight: 800, lineHeight: 1.4, marginBottom: 5, direction: "rtl" }}>
                     <span style={{ color: "#9A0D37" }}>حسابکردنی</span>{' '}
-                    <span style={{ color: "white", textShadow: "0 0 14px rgba(255,255,255,0.70),0 0 32px rgba(255,255,255,0.26)" }}>
-                      بڕینی پەرگۆلا
-                    </span>
+                    <span style={{ color: "white" }}>بڕینی پەرگۆلا</span>
                   </div>
                   <div style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "3.5px", textTransform: "uppercase", fontFamily: "var(--sys)" }}>
                     Pergola Kesim Hesabı
@@ -683,22 +677,20 @@
               </div>
 
               {/* Calculate Button */}
-              <div>
-                <button className="cbtn" onClick={handleCalc}>
-                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                    <rect x="1.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
-                    <rect x="8.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
-                    <rect x="1.5" y="8.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
-                    <path d="M11 8.5v6M8.5 11h6" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-                  </svg>
-                  حساب بکە / Hesapla
-                </button>
-              </div>
+              <button className="cbtn" onClick={handleCalc}>
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                  <rect x="1.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
+                  <rect x="8.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
+                  <rect x="1.5" y="8.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
+                  <path d="M11 8.5v6M8.5 11h6" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+                حساب بکە / Hesapla
+              </button>
 
               {/* Results */}
               {result && (
                 <div id="res-anchor" style={{ marginTop: 22 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                     <div className="stl" style={{ margin: 0 }}>ئەنجامەکان / Sonuçlar</div>
                     <button className="pbtn" onClick={() => window.print()}>
                       <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -715,7 +707,7 @@
                     <span className="chip">{cephe} × {acilim} mm</span>
                     {alColor && <span className="chip"><Swatch color={alColor} /> {alColor}</span>}
                     {fabColor && <span className="chip"><Swatch color={fabColor} /> {fabColor}</span>}
-                    {customer && <span className="chip" style={{ fontFamily: "var(--krd)" }}>{customer}</span>}
+                    {customer && <span className="chip">{customer}</span>}
                   </div>
 
                   <div style={{ fontSize: 9, letterSpacing: "2.8px", textTransform: "uppercase",
@@ -742,16 +734,16 @@
                       چادر / Çadır Ölçüsü
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                      {[
-                        { lbl: "ڕوکار / Cephe", val: result.cadir.cephe },
-                        { lbl: "کرانەوە / Açılım", val: result.cadir.acilim },
-                      ].map(({ lbl, val }) => (
-                        <div key={lbl} style={{ background: "rgba(0,0,0,0.28)", borderRadius: 12, padding: 12, textAlign: "center" }}>
-                          <div style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "1.5px", marginBottom: 4, fontFamily: "var(--sys)" }}>{lbl}</div>
-                          <div style={{ fontSize: 23, fontWeight: 700, fontFamily: "var(--sys)" }}><AnimNum value={val} /></div>
-                          <div style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "1px", fontFamily: "var(--sys)" }}>mm</div>
-                        </div>
-                      ))}
+                      <div style={{ background: "rgba(0,0,0,0.28)", borderRadius: 12, padding: 12, textAlign: "center" }}>
+                        <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--sys)" }}>ڕوکار / Cephe</div>
+                        <div style={{ fontSize: "clamp(20px, 5vw, 26px)", fontWeight: 700 }}><AnimNum value={result.cadir.cephe} /></div>
+                        <div style={{ fontSize: 9, color: "var(--muted)" }}>mm</div>
+                      </div>
+                      <div style={{ background: "rgba(0,0,0,0.28)", borderRadius: 12, padding: 12, textAlign: "center" }}>
+                        <div style={{ fontSize: 9, color: "var(--muted)" }}>کرانەوە / Açılım</div>
+                        <div style={{ fontSize: "clamp(20px, 5vw, 26px)", fontWeight: 700 }}><AnimNum value={result.cadir.acilim} /></div>
+                        <div style={{ fontSize: 9, color: "var(--muted)" }}>mm</div>
+                      </div>
                     </div>
                     <div style={{ borderTop: "1px solid rgba(154,13,55,0.14)", paddingTop: 12 }}>
                       <div style={{ fontSize: 9, letterSpacing: "2px", textTransform: "uppercase",
@@ -759,18 +751,16 @@
                         چیتا / Çita Sayısı
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        {[
-                          { lbl: "باریک / İnce Çita", val: result.cadir.inceChita, dec: 4 },
-                          { lbl: "ئەستوور / Kalin Çita", val: result.cadir.kalinChita, dec: 0 },
-                        ].map(({ lbl, val, dec }) => (
-                          <div key={lbl} style={{ background: "rgba(0,0,0,0.24)", borderRadius: 11, padding: "10px 13px" }}>
-                            <div style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "1.5px", marginBottom: 4, fontFamily: "var(--sys)" }}>{lbl}</div>
-                            <div style={{ fontSize: 19, fontWeight: 700, fontFamily: "var(--sys)" }}>
-                              <AnimNum value={val} decimals={dec} />
-                            </div>
-                            <div style={{ fontSize: 8, color: "rgba(240,232,236,0.18)", marginTop: 2, fontFamily: "var(--krd)" }}>دانە</div>
-                          </div>
-                        ))}
+                        <div style={{ background: "rgba(0,0,0,0.24)", borderRadius: 11, padding: "10px 13px" }}>
+                          <div style={{ fontSize: 9, color: "var(--muted)" }}>باریک / İnce Çita</div>
+                          <div style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700 }}><AnimNum value={result.cadir.inceChita} decimals={4} /></div>
+                          <div style={{ fontSize: 8, color: "rgba(240,232,236,0.18)" }}>دانە</div>
+                        </div>
+                        <div style={{ background: "rgba(0,0,0,0.24)", borderRadius: 11, padding: "10px 13px" }}>
+                          <div style={{ fontSize: 9, color: "var(--muted)" }}>ئەستوور / Kalin Çita</div>
+                          <div style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700 }}><AnimNum value={result.cadir.kalinChita} /></div>
+                          <div style={{ fontSize: 8, color: "rgba(240,232,236,0.18)" }}>دانە</div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -783,7 +773,7 @@
           {result && (
             <div className="psh">
               <div style={{ textAlign: "center", borderBottom: "2.5px solid #9A0D37", paddingBottom: 12, marginBottom: 16 }}>
-                <div style={{ fontSize: 22, fontWeight: "bold", color: "#9A0D37", letterSpacing: 5 }}>WLAT SHADE</div>
+                <div style={{ fontSize: 22, fontWeight: "bold", color: "#9A0D37" }}>WLAT SHADE</div>
                 <div style={{ fontSize: 15, fontWeight: "bold", marginTop: 2 }}>
                   حسابکردنی بڕینی پەرگۆلا / Pergola Kesim Listesi
                 </div>
@@ -803,11 +793,11 @@
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: "#9A0D37", color: "white" }}>
-                    <th style={{ padding: "7px 9px", textAlign: "left", fontSize: 11 }}>KALIP NO</th>
-                    <th style={{ padding: "7px 9px", textAlign: "left", fontSize: 11 }}>ÜRÜN ADI / ناوی کاڵا</th>
-                    <th style={{ padding: "7px 9px", textAlign: "left", fontSize: 11 }}>KESİM ÖLÇÜSÜ (mm)</th>
-                    <th style={{ padding: "7px 9px", textAlign: "left", fontSize: 11 }}>ADET / دانە</th>
-                  </tr>
+                    <th style={{ padding: "7px 9px", textAlign: "left" }}>KALIP NO</th>
+                    <th style={{ padding: "7px 9px", textAlign: "left" }}>ÜRÜN ADI / ناوی کاڵا</th>
+                    <th style={{ padding: "7px 9px", textAlign: "left" }}>KESİM ÖLÇÜSÜ (mm)</th>
+                    <th style={{ padding: "7px 9px", textAlign: "left" }}>ADET / دانە</th>
+                   </tr>
                 </thead>
                 <tbody>
                   {[
@@ -820,7 +810,7 @@
                     { code: result.kalinKornis.code, name: "کورنیشی ئەستوور / KALIN KORNİŞ", len: result.kalinKornis.len, qty: result.kalinKornis.qty },
                   ].map((row, i) => (
                     <tr key={i} style={{ background: i % 2 === 0 ? "#fdf7f9" : "white" }}>
-                      <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee", color: "#888", fontSize: 11 }}>{row.code}</td>
+                      <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee", color: "#888" }}>{row.code}</td>
                       <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee" }}>{row.name}</td>
                       <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee", textAlign: "right", fontWeight: "bold" }}>{row.len}</td>
                       <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee", textAlign: "right" }}>{row.qty}</td>
@@ -844,6 +834,7 @@
       );
     }
 
+    // Render app
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App />);
   </script>
