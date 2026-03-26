@@ -8,6 +8,27 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Zain:wght@400;700;800&display=swap" rel="stylesheet" />
 
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          screens: {
+            'lg': '1024px',
+          },
+          fontFamily: {
+            'system': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'system-ui', 'sans-serif'],
+            'kurd': ['Zain', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            'accent': '#9A0D37',
+          },
+        }
+      }
+    }
+  </script>
+
   <!-- React & ReactDOM - Production builds -->
   <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
@@ -21,8 +42,6 @@
   <style>
     *, *::before, *::after { 
       box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
     }
 
     :root {
@@ -33,13 +52,6 @@
       --accent: #9A0D37;
     }
 
-    html, body, #root {
-      height: 100%;
-      width: 100%;
-      min-height: 100%;
-      position: relative;
-    }
-
     body {
       font-family: var(--sys);
       background: #070209;
@@ -47,11 +59,6 @@
       overflow-x: hidden;
       margin: 0;
       padding: 0;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
     }
 
     /* Background with mesh gradient animation */
@@ -61,8 +68,6 @@
       z-index: 0;
       background: #070209;
       overflow: hidden;
-      width: 100%;
-      height: 100%;
     }
 
     .bg-wrap::before {
@@ -108,47 +113,27 @@
       100% { transform: translate(2%, 5%) scale(1.03); opacity: 0.9; }
     }
 
-    /* Scroll container - full screen with scroll */
     .scroll-root {
       position: relative;
       z-index: 1;
-      width: 100%;
-      height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
+      min-height: 100vh;
     }
 
-    .app {
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px 16px 100px;
-      min-height: 100%;
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
     }
 
-    .gc {
-      background: rgba(255, 255, 255, 0.048);
-      border: 1px solid rgba(255, 255, 255, 0.082);
-      border-radius: 22px;
-      padding: 22px;
-      backdrop-filter: blur(24px);
-      margin-bottom: 14px;
-    }
-
-    .stl {
-      font-size: 10px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 12px;
-      font-family: var(--sys);
+    input, button {
+      -webkit-tap-highlight-color: transparent;
     }
 
     .rbrow {
       display: flex;
       gap: 7px;
-      margin-bottom: 18px;
     }
 
     .rb {
@@ -169,19 +154,6 @@
       border-color: #9A0D37;
       background: rgba(154, 13, 55, 0.16);
       color: white;
-    }
-
-    .color-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0;
-    }
-
-    @media (min-width: 460px) {
-      .color-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
     }
 
     .cbtn {
@@ -280,7 +252,6 @@
       body {
         background: white !important;
         color: black !important;
-        position: static !important;
       }
       .bg-wrap {
         display: none !important;
@@ -289,32 +260,6 @@
         display: block !important;
         padding: 24px;
         font-family: Arial, sans-serif;
-      }
-      .scroll-root {
-        height: auto !important;
-        overflow: visible !important;
-      }
-    }
-
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-
-    input, button {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Full screen adjustments */
-    @media (max-width: 480px) {
-      .app {
-        padding: 16px 12px 80px;
-      }
-      .gc {
-        padding: 18px;
       }
     }
   </style>
@@ -334,7 +279,6 @@
       useSpring = window.framerMotion.useSpring;
       useTransform = window.framerMotion.useTransform;
     } else {
-      // Fallback components
       motion = {
         div: ({ children, ...props }) => <div {...props}>{children}</div>,
         button: ({ children, ...props }) => <button {...props}>{children}</button>,
@@ -432,25 +376,9 @@
     // ─── IMAGE SLOT ──────────────────────────────────────────────────────────
     function ImgSlot({ src }) {
       return (
-        <div style={{
-          width: 80, height: 56, flexShrink: 0,
-          borderRadius: 14,
-          border: "1px solid rgba(154,13,55,0.24)",
-          background: "rgba(0,0,0,0.30)",
-          overflow: "hidden", position: "relative",
-          boxShadow: "0 2px 14px rgba(154,13,55,0.12), inset 0 0 14px rgba(154,13,55,0.06)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <div style={{
-            width: "76%", height: "70%",
-            border: "1.5px dashed rgba(154,13,55,0.26)",
-            borderRadius: 8,
-          }} />
-          <div style={{
-            position: "absolute", inset: 0,
-            background: "radial-gradient(ellipse at center,transparent 48%,rgba(6,2,4,0.55) 100%)",
-            pointerEvents: "none",
-          }} />
+        <div className="w-20 h-14 flex-shrink-0 rounded-xl border border-accent/30 bg-black/30 overflow-hidden relative shadow-[0_2px_14px_rgba(154,13,55,0.12)] flex items-center justify-center">
+          <div className="w-[76%] h-[70%] border-2 border-dashed border-accent/40 rounded-lg" />
+          <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/50 pointer-events-none" />
         </div>
       );
     }
@@ -459,54 +387,40 @@
     function Swatch({ color }) {
       const isNamed = color && /^[a-zA-Z#]/.test(color.trim());
       return (
-        <span style={{
-          display: "inline-block", width: 9, height: 9, borderRadius: "50%",
-          background: isNamed ? color : "rgba(154,13,55,0.5)",
-          border: "1px solid rgba(255,255,255,0.22)",
-          flexShrink: 0, verticalAlign: "middle",
-        }} />
+        <span className="inline-block w-2.5 h-2.5 rounded-full border border-white/30 flex-shrink-0 align-middle"
+          style={{ background: isNamed ? color : "rgba(154,13,55,0.5)" }}
+        />
       );
     }
 
     // ─── RESULT CARD ─────────────────────────────────────────────────────────
     function ResultCard({ label, len, qty, code, isFractional }) {
       return (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 13,
-          background: "rgba(154,13,55,0.07)",
-          border: "1px solid rgba(154,13,55,0.18)",
-          borderRadius: 16, padding: "13px 14px", marginBottom: 9,
-          backdropFilter: "blur(18px)",
-        }}>
+        <div className="flex items-center gap-3 bg-accent/10 border border-accent/20 rounded-2xl p-3 mb-2 backdrop-blur-lg">
           <ImgSlot />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontSize: 12, fontWeight: 600, color: "#f0e8ec",
-              letterSpacing: "0.3px", marginBottom: 2,
-              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-              fontFamily: "var(--sys)",
-            }}>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-white tracking-wide mb-0.5 truncate font-system">
               {label}
             </div>
-            <div style={{ fontSize: 9.5, color: "rgba(240,232,236,0.28)", letterSpacing: "1.2px", marginBottom: 5, fontFamily: "var(--sys)" }}>
+            <div className="text-[9.5px] text-white/30 tracking-wider mb-1 font-system">
               #{code}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "var(--sys)" }}>
+            <div className="flex items-center gap-2">
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl md:text-2xl font-bold text-white font-system">
                   <AnimNum value={Math.round(Number(len))} />
                 </span>
-                <span style={{ fontSize: 9, color: "rgba(240,232,236,0.42)", fontFamily: "var(--sys)" }}>mm</span>
+                <span className="text-[9px] text-white/40 font-system">mm</span>
               </div>
-              <span style={{ color: "rgba(154,13,55,0.55)", fontSize: 14 }}>×</span>
+              <span className="text-accent/50 text-sm">×</span>
               <div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "var(--sys)" }}>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl md:text-2xl font-bold text-white font-system">
                     {isFractional ? <AnimNum value={qty} decimals={4} /> : <AnimNum value={qty} />}
                   </span>
-                  <span style={{ fontSize: 9, color: "rgba(240,232,236,0.42)", fontFamily: "var(--sys)" }}>adet</span>
+                  <span className="text-[9px] text-white/40 font-system">adet</span>
                 </div>
-                <span style={{ fontSize: 8, color: "rgba(240,232,236,0.18)", fontFamily: "var(--krd)" }}>دانە</span>
+                <span className="text-[8px] text-white/20 font-kurd">دانە</span>
               </div>
             </div>
           </div>
@@ -517,18 +431,14 @@
     // ─── SEGMENT CONTROL ─────────────────────────────────────────────────────
     function SegControl({ options, value, onChange }) {
       return (
-        <div style={{ display: "flex", background: "rgba(0,0,0,0.35)", borderRadius: 13, padding: 4, gap: 4, marginBottom: 18 }}>
+        <div className="flex bg-black/40 rounded-xl p-1 gap-1 mb-4">
           {options.map(opt => (
             <button key={opt.value} onClick={() => onChange(opt.value)}
-              style={{
-                flex: 1, padding: "9px 0", border: "none", borderRadius: 9, cursor: "pointer",
-                background: value === opt.value
-                  ? "linear-gradient(135deg,#9A0D37 0%,#c01548 100%)"
-                  : "transparent",
-                color: value === opt.value ? "white" : "rgba(240,232,236,0.4)",
-                fontFamily: "var(--sys)", fontSize: 13, fontWeight: 600,
-                boxShadow: value === opt.value ? "0 3px 14px rgba(154,13,55,0.42)" : "none",
-              }}
+              className={`flex-1 py-2 border-none rounded-lg cursor-pointer font-system text-xs md:text-sm font-semibold transition-all ${
+                value === opt.value
+                  ? "bg-gradient-to-r from-accent to-[#c01548] text-white shadow-lg shadow-accent/40"
+                  : "bg-transparent text-white/40"
+              }`}
             >
               {opt.label}
             </button>
@@ -540,25 +450,16 @@
     // ─── NUMBER INPUT ────────────────────────────────────────────────────────
     function NumInput({ label, value, onChange }) {
       return (
-        <div style={{ marginBottom: 13 }}>
-          <label style={{ display: "block", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase",
-            color: "rgba(240,232,236,0.46)", marginBottom: 5, fontFamily: "var(--sys)" }}>
+        <div className="mb-3">
+          <label className="block text-[10px] tracking-[2px] uppercase text-white/50 mb-1 font-system">
             {label}
           </label>
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <input type="number" value={value} placeholder=""
               onChange={e => onChange(e.target.value)}
-              style={{
-                width: "100%", padding: "12px 44px 12px 15px",
-                background: "rgba(0,0,0,0.36)",
-                border: "1px solid rgba(255,255,255,0.09)",
-                borderRadius: 13, color: "white",
-                fontFamily: "var(--sys)", fontSize: 16,
-                outline: "none",
-              }}
+              className="w-full py-3 pl-4 pr-12 bg-black/40 border border-white/10 rounded-xl text-white font-system text-base outline-none focus:border-accent/50 transition-colors"
             />
-            <span style={{ position: "absolute", right: 13, top: "50%", transform: "translateY(-50%)",
-              fontSize: 10, color: "rgba(240,232,236,0.28)", fontFamily: "var(--sys)" }}>mm</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/30 font-system">mm</span>
           </div>
         </div>
       );
@@ -567,21 +468,13 @@
     // ─── TEXT INPUT ──────────────────────────────────────────────────────────
     function TxtInput({ label, value, onChange }) {
       return (
-        <div style={{ marginBottom: 13 }}>
-          <label style={{ display: "block", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase",
-            color: "rgba(240,232,236,0.46)", marginBottom: 5, fontFamily: "var(--sys)" }}>
+        <div className="mb-3">
+          <label className="block text-[10px] tracking-[2px] uppercase text-white/50 mb-1 font-system">
             {label}
           </label>
           <input type="text" value={value} placeholder=""
             onChange={e => onChange(e.target.value)}
-            style={{
-              width: "100%", padding: "11px 14px",
-              background: "rgba(0,0,0,0.30)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 12, color: "white",
-              fontFamily: "var(--sys)", fontSize: 14,
-              outline: "none",
-            }}
+            className="w-full py-2.5 px-3.5 bg-black/30 border border-white/10 rounded-xl text-white font-system text-sm outline-none focus:border-accent/50 transition-colors"
           />
         </div>
       );
@@ -589,7 +482,7 @@
 
     // ─── DIVIDER ─────────────────────────────────────────────────────────────
     function Divider() {
-      return <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(154,13,55,0.25),transparent)", margin: "6px 0 16px" }} />;
+      return <div className="h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent my-1.5 mb-4" />;
     }
 
     // ─── MAIN APP ─────────────────────────────────────────────────────────────
@@ -617,81 +510,92 @@
         <>
           <div className="bg-wrap" />
           <div className="scroll-root">
-            <div className="app no-print">
+            <div className="max-w-7xl mx-auto px-4 py-5 md:py-8 lg:py-10 no-print">
               {/* Header */}
-              <header style={{ textAlign: "center", padding: "44px 0 26px" }}>
+              <header className="text-center pt-8 pb-6 md:pt-12 md:pb-8 lg:pt-16 lg:pb-10">
                 <div>
-                  <div style={{ fontFamily: "var(--sys)", fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 700, letterSpacing: 7, marginBottom: 10 }}>
-                    <span style={{ color: "#9A0D37" }}>WLAT</span>{' '}
-                    <span style={{ color: "white", textShadow: "0 0 12px rgba(255,255,255,0.9)" }}>
+                  <div className="font-system text-3xl md:text-4xl lg:text-5xl font-bold tracking-[0.2em] mb-2">
+                    <span className="text-accent">WLAT</span>{' '}
+                    <span className="text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]">
                       SHADE
                     </span>
                   </div>
-                  <div style={{ fontFamily: "var(--krd)", fontSize: "clamp(18px, 5vw, 26px)", fontWeight: 800, lineHeight: 1.4, marginBottom: 5, direction: "rtl" }}>
-                    <span style={{ color: "#9A0D37" }}>حسابکردنی</span>{' '}
-                    <span style={{ color: "white" }}>بڕینی پەرگۆلا</span>
+                  <div className="font-kurd text-xl md:text-2xl lg:text-3xl font-extrabold leading-tight mb-1.5 rtl">
+                    <span className="text-accent">حسابکردنی</span>{' '}
+                    <span className="text-white">بڕینی پەرگۆلا</span>
                   </div>
-                  <div style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "3.5px", textTransform: "uppercase", fontFamily: "var(--sys)" }}>
+                  <div className="text-[10px] text-white/40 tracking-[3.5px] uppercase font-system">
                     Pergola Kesim Hesabı
                   </div>
-                  <div style={{ width: 55, height: 1, background: "linear-gradient(90deg,transparent,#9A0D37,transparent)", margin: "14px auto 0" }} />
+                  <div className="w-14 h-px bg-gradient-to-r from-transparent via-accent to-transparent mx-auto mt-3.5" />
                 </div>
               </header>
 
-              {/* Input Card */}
-              <div className="gc">
-                <div className="stl">سیستەم / Sistem</div>
-                <SegControl
-                  value={system}
-                  onChange={s => { setSystem(s); setResult(null); }}
-                  options={[
-                    { value: "70", label: "Ray 70" },
-                    { value: "90", label: "Ray 90" },
-                    { value: "110", label: "Ray 110" },
-                  ]}
-                />
+              {/* Input Card - Mobile First: single column, Desktop: two columns */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl p-5 md:p-6 lg:p-8 mb-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                  {/* Column 1 */}
+                  <div>
+                    <div className="text-[10px] tracking-[3px] uppercase text-white/40 mb-3 font-system">سیستەم / Sistem</div>
+                    <SegControl
+                      value={system}
+                      onChange={s => { setSystem(s); setResult(null); }}
+                      options={[
+                        { value: "70", label: "Ray 70" },
+                        { value: "90", label: "Ray 90" },
+                        { value: "110", label: "Ray 110" },
+                      ]}
+                    />
 
-                <div className="stl">ژمارەی ڕەیل / Ray Sayısı</div>
-                <div className="rbrow">
-                  {["2", "3", "4"].map(r => (
-                    <button
-                      key={r}
-                      className={`rb ${rails === r ? "on" : ""}`}
-                      onClick={() => { setRails(r); setResult(null); }}
-                    >
-                      {r} ڕەیل / Ray
-                    </button>
-                  ))}
+                    <div className="text-[10px] tracking-[3px] uppercase text-white/40 mb-3 font-system">ژمارەی ڕەیل / Ray Sayısı</div>
+                    <div className="rbrow mb-4">
+                      {["2", "3", "4"].map(r => (
+                        <button
+                          key={r}
+                          className={`rb ${rails === r ? "on" : ""}`}
+                          onClick={() => { setRails(r); setResult(null); }}
+                        >
+                          {r} ڕەیل / Ray
+                        </button>
+                      ))}
+                    </div>
+
+                    <TxtInput label="کریار / Müşteri" value={customer} onChange={setCustomer} />
+                  </div>
+
+                  {/* Column 2 */}
+                  <div>
+                    <NumInput label="ڕوکار / Cephe (mm)" value={cephe} onChange={setCephe} />
+                    <NumInput label="کرانەوە / Açılım (mm)" value={acilim} onChange={setAcilim} />
+
+                    <Divider />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <TxtInput label="رەنگی ئەلومنیۆم / Alüminyum" value={alColor} onChange={setAlColor} />
+                      <TxtInput label="رەنگی کوماش / Kumaş" value={fabColor} onChange={setFabColor} />
+                    </div>
+                  </div>
                 </div>
 
-                <TxtInput label="کریار / Müşteri" value={customer} onChange={setCustomer} />
-                <NumInput label="ڕوکار / Cephe (mm)" value={cephe} onChange={setCephe} />
-                <NumInput label="کرانەوە / Açılım (mm)" value={acilim} onChange={setAcilim} />
-
-                <Divider />
-
-                <div className="color-grid">
-                  <TxtInput label="رەنگی ئەلومنیۆم / Alüminyum" value={alColor} onChange={setAlColor} />
-                  <TxtInput label="رەنگی کوماش / Kumaş" value={fabColor} onChange={setFabColor} />
+                {/* Calculate Button - Full width at bottom */}
+                <div className="mt-6 lg:mt-8">
+                  <button className="cbtn" onClick={handleCalc}>
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                      <rect x="1.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
+                      <rect x="8.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
+                      <rect x="1.5" y="8.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
+                      <path d="M11 8.5v6M8.5 11h6" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
+                    </svg>
+                    حساب بکە / Hesapla
+                  </button>
                 </div>
               </div>
 
-              {/* Calculate Button */}
-              <button className="cbtn" onClick={handleCalc}>
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                  <rect x="1.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
-                  <rect x="8.5" y="1.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
-                  <rect x="1.5" y="8.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3" />
-                  <path d="M11 8.5v6M8.5 11h6" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-                </svg>
-                حساب بکە / Hesapla
-              </button>
-
               {/* Results */}
               {result && (
-                <div id="res-anchor" style={{ marginTop: 22 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-                    <div className="stl" style={{ margin: 0 }}>ئەنجامەکان / Sonuçlar</div>
+                <div id="res-anchor" className="mt-6">
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                    <div className="text-[10px] tracking-[3px] uppercase text-white/40 font-system">ئەنجامەکان / Sonuçlar</div>
                     <button className="pbtn" onClick={() => window.print()}>
                       <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                         <path d="M3 5V1h7v4M3 9.5H1V5h11v4.5h-2M3 8h7v4H3z"
@@ -710,56 +614,51 @@
                     {customer && <span className="chip">{customer}</span>}
                   </div>
 
-                  <div style={{ fontSize: 9, letterSpacing: "2.8px", textTransform: "uppercase",
-                    color: "rgba(154,13,55,0.72)", marginBottom: 10, fontFamily: "var(--sys)" }}>
+                  <div className="text-[9px] tracking-[2.8px] uppercase text-accent/70 mb-3 font-system">
                     ئەلومنیۆم / Alüminyum Profiller
                   </div>
 
-                  <ResultCard label={`ڕەیل / RAY ${result.ray.profile}`} code={result.ray.code} len={result.ray.len} qty={result.ray.qty} />
-                  <ResultCard label={`ئاوڕۆ / OLUK ${result.oluk.profile}`} code={result.oluk.code} len={result.oluk.len} qty={result.oluk.qty} />
-                  <ResultCard label="بۆری مۆتۆر / MOTOR BORUSU" code={result.motor.code} len={result.motor.len} qty={result.motor.qty} />
-                  <ResultCard label={`ستوون / ${result.dikme.name} ${result.dikme.profile}`} code={result.dikme.code} len={result.dikme.len} qty={result.dikme.qty} />
-                  <ResultCard label="تراپێز / TRAPEZ PROFİLİ" code={result.trapez.code} len={result.trapez.len} qty={result.trapez.qty} />
-                  <ResultCard isFractional label="کورنیشی باریک / İNCE KORNİŞ" code={result.inceKornis.code} len={result.inceKornis.len} qty={result.inceKornis.qty} />
-                  <ResultCard label="کورنیشی ئەستوور / KALIN KORNİŞ" code={result.kalinKornis.code} len={result.kalinKornis.len} qty={result.kalinKornis.qty} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <ResultCard label={`ڕەیل / RAY ${result.ray.profile}`} code={result.ray.code} len={result.ray.len} qty={result.ray.qty} />
+                    <ResultCard label={`ئاوڕۆ / OLUK ${result.oluk.profile}`} code={result.oluk.code} len={result.oluk.len} qty={result.oluk.qty} />
+                    <ResultCard label="بۆری مۆتۆر / MOTOR BORUSU" code={result.motor.code} len={result.motor.len} qty={result.motor.qty} />
+                    <ResultCard label={`ستوون / ${result.dikme.name} ${result.dikme.profile}`} code={result.dikme.code} len={result.dikme.len} qty={result.dikme.qty} />
+                    <ResultCard label="تراپێز / TRAPEZ PROFİLİ" code={result.trapez.code} len={result.trapez.len} qty={result.trapez.qty} />
+                    <ResultCard isFractional label="کورنیشی باریک / İNCE KORNİŞ" code={result.inceKornis.code} len={result.inceKornis.len} qty={result.inceKornis.qty} />
+                    <ResultCard label="کورنیشی ئەستوور / KALIN KORNİŞ" code={result.kalinKornis.code} len={result.kalinKornis.len} qty={result.kalinKornis.qty} />
+                  </div>
 
                   {/* Çadır Section */}
-                  <div style={{
-                    background: "rgba(154,13,55,0.07)",
-                    border: "1px solid rgba(154,13,55,0.15)",
-                    borderRadius: 16, padding: "16px", marginBottom: 9,
-                  }}>
-                    <div style={{ fontSize: 9.5, letterSpacing: "2.5px", textTransform: "uppercase",
-                      color: "rgba(154,13,55,0.85)", marginBottom: 13, fontFamily: "var(--sys)" }}>
+                  <div className="bg-accent/10 border border-accent/20 rounded-2xl p-4 md:p-5 mt-2">
+                    <div className="text-[9.5px] tracking-[2.5px] uppercase text-accent/80 mb-3 font-system">
                       چادر / Çadır Ölçüsü
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                      <div style={{ background: "rgba(0,0,0,0.28)", borderRadius: 12, padding: 12, textAlign: "center" }}>
-                        <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--sys)" }}>ڕوکار / Cephe</div>
-                        <div style={{ fontSize: "clamp(20px, 5vw, 26px)", fontWeight: 700 }}><AnimNum value={result.cadir.cephe} /></div>
-                        <div style={{ fontSize: 9, color: "var(--muted)" }}>mm</div>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-black/30 rounded-xl p-3 text-center">
+                        <div className="text-[9px] text-white/50 font-system">ڕوکار / Cephe</div>
+                        <div className="text-xl md:text-2xl font-bold"><AnimNum value={result.cadir.cephe} /></div>
+                        <div className="text-[9px] text-white/50">mm</div>
                       </div>
-                      <div style={{ background: "rgba(0,0,0,0.28)", borderRadius: 12, padding: 12, textAlign: "center" }}>
-                        <div style={{ fontSize: 9, color: "var(--muted)" }}>کرانەوە / Açılım</div>
-                        <div style={{ fontSize: "clamp(20px, 5vw, 26px)", fontWeight: 700 }}><AnimNum value={result.cadir.acilim} /></div>
-                        <div style={{ fontSize: 9, color: "var(--muted)" }}>mm</div>
+                      <div className="bg-black/30 rounded-xl p-3 text-center">
+                        <div className="text-[9px] text-white/50">کرانەوە / Açılım</div>
+                        <div className="text-xl md:text-2xl font-bold"><AnimNum value={result.cadir.acilim} /></div>
+                        <div className="text-[9px] text-white/50">mm</div>
                       </div>
                     </div>
-                    <div style={{ borderTop: "1px solid rgba(154,13,55,0.14)", paddingTop: 12 }}>
-                      <div style={{ fontSize: 9, letterSpacing: "2px", textTransform: "uppercase",
-                        color: "rgba(154,13,55,0.65)", marginBottom: 10, fontFamily: "var(--sys)" }}>
+                    <div className="border-t border-accent/20 pt-3">
+                      <div className="text-[9px] tracking-[2px] uppercase text-accent/60 mb-2 font-system">
                         چیتا / Çita Sayısı
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <div style={{ background: "rgba(0,0,0,0.24)", borderRadius: 11, padding: "10px 13px" }}>
-                          <div style={{ fontSize: 9, color: "var(--muted)" }}>باریک / İnce Çita</div>
-                          <div style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700 }}><AnimNum value={result.cadir.inceChita} decimals={4} /></div>
-                          <div style={{ fontSize: 8, color: "rgba(240,232,236,0.18)" }}>دانە</div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-black/30 rounded-xl p-2.5">
+                          <div className="text-[9px] text-white/50">باریک / İnce Çita</div>
+                          <div className="text-lg md:text-xl font-bold"><AnimNum value={result.cadir.inceChita} decimals={4} /></div>
+                          <div className="text-[8px] text-white/20">دانە</div>
                         </div>
-                        <div style={{ background: "rgba(0,0,0,0.24)", borderRadius: 11, padding: "10px 13px" }}>
-                          <div style={{ fontSize: 9, color: "var(--muted)" }}>ئەستوور / Kalin Çita</div>
-                          <div style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700 }}><AnimNum value={result.cadir.kalinChita} /></div>
-                          <div style={{ fontSize: 8, color: "rgba(240,232,236,0.18)" }}>دانە</div>
+                        <div className="bg-black/30 rounded-xl p-2.5">
+                          <div className="text-[9px] text-white/50">ئەستوور / Kalin Çita</div>
+                          <div className="text-lg md:text-xl font-bold"><AnimNum value={result.cadir.kalinChita} /></div>
+                          <div className="text-[8px] text-white/20">دانە</div>
                         </div>
                       </div>
                     </div>
@@ -772,17 +671,17 @@
           {/* Print Sheet */}
           {result && (
             <div className="psh">
-              <div style={{ textAlign: "center", borderBottom: "2.5px solid #9A0D37", paddingBottom: 12, marginBottom: 16 }}>
-                <div style={{ fontSize: 22, fontWeight: "bold", color: "#9A0D37" }}>WLAT SHADE</div>
-                <div style={{ fontSize: 15, fontWeight: "bold", marginTop: 2 }}>
+              <div className="text-center border-b-2 border-accent pb-3 mb-4">
+                <div className="text-2xl font-bold text-accent">WLAT SHADE</div>
+                <div className="text-base font-bold mt-1">
                   حسابکردنی بڕینی پەرگۆلا / Pergola Kesim Listesi
                 </div>
-                <div style={{ fontSize: 11, color: "#777", marginTop: 4 }}>
+                <div className="text-xs text-gray-500 mt-1">
                   {customer && <><span>کریار / Müşteri: <b>{customer}</b></span> &nbsp;|&nbsp;</>}
                   بەروار / Tarih: {today}
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 14, fontSize: 12 }}>
+              <div className="grid grid-cols-2 gap-1.5 mb-3 text-xs">
                 <div><b>سیستەم / Sistem:</b> Ray {system}</div>
                 <div><b>ڕەیل / Ray Sayısı:</b> {rails}</div>
                 <div><b>ڕوکار / Cephe:</b> {cephe} mm</div>
@@ -790,14 +689,14 @@
                 {alColor && <div><b>ئەلومنیۆم:</b> {alColor}</div>}
                 {fabColor && <div><b>کوماش / Kumaş:</b> {fabColor}</div>}
               </div>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <table className="w-full border-collapse text-xs">
                 <thead>
-                  <tr style={{ background: "#9A0D37", color: "white" }}>
-                    <th style={{ padding: "7px 9px", textAlign: "left" }}>KALIP NO</th>
-                    <th style={{ padding: "7px 9px", textAlign: "left" }}>ÜRÜN ADI / ناوی کاڵا</th>
-                    <th style={{ padding: "7px 9px", textAlign: "left" }}>KESİM ÖLÇÜSÜ (mm)</th>
-                    <th style={{ padding: "7px 9px", textAlign: "left" }}>ADET / دانە</th>
-                   </tr>
+                  <tr className="bg-accent text-white">
+                    <th className="p-2 text-left">KALIP NO</th>
+                    <th className="p-2 text-left">ÜRÜN ADI / ناوی کاڵا</th>
+                    <th className="p-2 text-left">KESİM ÖLÇÜSÜ (mm)</th>
+                    <th className="p-2 text-left">ADET / دانە</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {[
@@ -809,23 +708,23 @@
                     { code: result.inceKornis.code, name: "کورنیشی باریک / İNCE KORNİŞ", len: result.inceKornis.len, qty: result.inceKornis.qty.toFixed(4) },
                     { code: result.kalinKornis.code, name: "کورنیشی ئەستوور / KALIN KORNİŞ", len: result.kalinKornis.len, qty: result.kalinKornis.qty },
                   ].map((row, i) => (
-                    <tr key={i} style={{ background: i % 2 === 0 ? "#fdf7f9" : "white" }}>
-                      <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee", color: "#888" }}>{row.code}</td>
-                      <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee" }}>{row.name}</td>
-                      <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee", textAlign: "right", fontWeight: "bold" }}>{row.len}</td>
-                      <td style={{ padding: "6px 9px", borderBottom: "1px solid #eee", textAlign: "right" }}>{row.qty}</td>
+                    <tr key={i} className={i % 2 === 0 ? "bg-[#fdf7f9]" : "bg-white"}>
+                      <td className="p-2 border-b border-gray-200 text-gray-600">{row.code}</td>
+                      <td className="p-2 border-b border-gray-200">{row.name}</td>
+                      <td className="p-2 border-b border-gray-200 text-right font-bold">{row.len}</td>
+                      <td className="p-2 border-b border-gray-200 text-right">{row.qty}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "#fdf0f4", border: "1px solid #9A0D37", borderRadius: 8, fontSize: 12 }}>
+              <div className="mt-3 p-2.5 bg-[#fdf0f4] border border-accent rounded-lg text-xs">
                 <b>چادر / Çadır:</b>
                 {" "}Cephe: <b>{result.cadir.cephe}</b> mm &nbsp;|&nbsp;
                 Açılım: <b>{result.cadir.acilim}</b> mm &nbsp;|&nbsp;
                 İnce Çita: <b>{result.cadir.inceChita.toFixed(4)}</b> &nbsp;|&nbsp;
                 Kalin Çita: <b>{result.cadir.kalinChita}</b>
               </div>
-              <div style={{ marginTop: 18, fontSize: 10, color: "#bbb", textAlign: "center" }}>
+              <div className="mt-4 text-[10px] text-gray-400 text-center">
                 WLAT SHADE — Pergola Cutting System · {today}
               </div>
             </div>
