@@ -94,8 +94,15 @@
     }
 
     .app {
-      width: 100%; max-width: 500px;
+      width: 100%;
       padding: 0 16px 100px; flex: 1;
+    }
+
+    @media (min-width: 768px) {
+      .app {
+        max-width: 900px;
+        margin: 0 auto;
+      }
     }
 
     .gc {
@@ -318,19 +325,32 @@
       if (!c || !a || isNaN(c) || isNaN(a) || c < 100 || a < 100) return null;
 
       const rayLen  = a - 220;
-      const rayCode = system === "110" ? "2052" : "2001";
+      const rayCode = system === "110" ? "2001" : "2052"; // FIX: codes were inverted
       const rayProfile = system === "70" ? "70×150" : system === "90" ? "90×150" : "110×150";
 
       const olukLen     = c + 150;
-      const olukCode    = system === "110" ? "2078" : "2770";
+      // FIX: sys110 → 2078 always; sys90 with 3 rails → 2078; all others → 2770
+      const olukCode    = system === "110" ? "2078" : (system === "90" && n === 3) ? "2078" : "2770";
       const olukProfile = system === "110" ? "152×150" : "145×135";
 
       const motorLen = c;
 
-      const dikmeLen     = 3000;
-      const dikmeCode    = system === "70" && n === 2 ? "6565" : "2111";
-      const dikmeProfile = system === "110" ? "110×145" : "100×100";
-      const dikmeName    = system === "70" ? "DİKME" : "AYAK";
+      const dikmeLen = 3000;
+
+      // DIKME code and profile — verified against Excel, all 9 combinations
+      let dikmeCode, dikmeProfile;
+      if (system === "70") {
+        dikmeCode    = "6565";
+        dikmeProfile = n === 2 ? "100×100" : "110×145";
+      } else if (system === "90") {
+        dikmeCode    = n === 3 ? "2111" : "6565";
+        dikmeProfile = "100×100";
+      } else {
+        dikmeCode    = "2111";
+        dikmeProfile = "110×145";
+      }
+
+      const dikmeName = system === "70" ? "DİKME" : "AYAK";
 
       let trapLen, trapQty;
       if (system === "70") {
@@ -486,7 +506,7 @@
                 padding: "11px 14px", textAlign: "center",
               }}>
                 <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--krd)", letterSpacing: "-0.3px", marginBottom: 4 }}>
-‎                  بڕین / Kesim
+                  بڕین / Kesim
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: "white" }}>
                   <AnimNum value={item.len} />
@@ -498,7 +518,7 @@
                 padding: "11px 14px", textAlign: "center",
               }}>
                 <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--krd)", letterSpacing: "-0.3px", marginBottom: 4 }}>
-‎                  دانە / Adet
+                  دانە / Adet
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: "white" }}>
                   {item.isFractional
@@ -814,7 +834,7 @@
               {/* Input Card */}
               <div className="gc">
                 <div style={{ fontSize: 10, letterSpacing: "-0.3px", color: "rgba(240,232,236,0.46)", marginBottom: 12, fontFamily: "var(--krd)", fontFeatureSettings: "'calt' 1, 'liga' 1, 'rlig' 1" }}>
-‎                  سیستەم / Sistem
+                  سیستەم / Sistem
                 </div>
                 <SegControl
                   value={system}
@@ -827,7 +847,7 @@
                 />
 
                 <div style={{ fontSize: 10, letterSpacing: "-0.3px", color: "rgba(240,232,236,0.46)", marginBottom: 12, fontFamily: "var(--krd)", fontFeatureSettings: "'calt' 1, 'liga' 1, 'rlig' 1" }}>
-‎                  ژمارەی ڕەیل / Ray Sayısı
+                  ژمارەی ڕەیل / Ray Sayısı
                 </div>
                 <div className="rbrow">
                   {["2","3","4"].map(r => (
@@ -858,7 +878,7 @@
                   <rect x="1.5" y="8.5" width="5" height="5" rx="1" stroke="white" strokeWidth="1.3"/>
                   <path d="M11 8.5v6M8.5 11h6" stroke="white" strokeWidth="1.3" strokeLinecap="round"/>
                 </svg>
-‎                حساب بکە / Hesapla
+                حساب بکە / Hesapla
               </button>
 
               {/* Results */}
@@ -866,14 +886,14 @@
                 <div id="res-anchor" style={{ marginTop: 22 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <div style={{ fontSize: 10, letterSpacing: "-0.3px", color: "rgba(240,232,236,0.46)", fontFamily: "var(--krd)", fontFeatureSettings: "'calt' 1, 'liga' 1, 'rlig' 1" }}>
-‎                      ئەنجامەکان / Sonuçlar
+                      ئەنجامەکان / Sonuçlar
                     </div>
                     <button className="pbtn" onClick={() => window.print()}>
                       <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                         <path d="M3 5V1h7v4M3 9.5H1V5h11v4.5h-2M3 8h7v4H3z"
                           stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-‎                      پرینت / Yazdır
+                      پرینت / Yazdır
                     </button>
                   </div>
 
@@ -900,12 +920,12 @@
                       <path d="M4 5.5h3M5.5 4v3" stroke="rgba(154,13,55,0.6)" strokeWidth="1" strokeLinecap="round"/>
                     </svg>
                     <span style={{ fontSize: 9.5, color: "rgba(240,232,236,0.38)", fontFamily: "var(--krd)", letterSpacing: "-0.3px" }}>
-‎                      کلیک بکە بۆ چاکترین دیمەن / Büyütmek için tıkla
+                      کلیک بکە بۆ چاکترین دیمەن / Büyütmek için tıkla
                     </span>
                   </div>
 
                   <div style={{ fontSize: 9, letterSpacing: "-0.3px", color: "rgba(154,13,55,0.72)", marginBottom: 10, fontFamily: "var(--krd)", fontFeatureSettings: "'calt' 1, 'liga' 1, 'rlig' 1" }}>
-‎                    ئەلومنیۆم / Alüminyum Profiller
+                    ئەلومنیۆم / Alüminyum Profiller
                   </div>
 
                   <ResultCard label={`ڕەیل / RAY ${result.ray.profile}`}            code={result.ray.code}         len={result.ray.len}         qty={result.ray.qty}         profile={result.ray.profile} />
@@ -922,7 +942,7 @@
                     borderRadius: 16, padding: 16, marginBottom: 9,
                   }}>
                     <div style={{ fontSize: 9.5, letterSpacing: "-0.3px", color: "rgba(154,13,55,0.85)", marginBottom: 13, fontFamily: "var(--krd)", fontFeatureSettings: "'calt' 1, 'liga' 1, 'rlig' 1" }}>
-‎                      چادر / Çadır Ölçüsü
+                      چادر / Çadır Ölçüsü
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                       {[
@@ -938,7 +958,7 @@
                     </div>
                     <div style={{ borderTop: "1px solid rgba(154,13,55,0.14)", paddingTop: 12 }}>
                       <div style={{ fontSize: 9, letterSpacing: "-0.3px", color: "rgba(154,13,55,0.65)", marginBottom: 10, fontFamily: "var(--krd)", fontFeatureSettings: "'calt' 1, 'liga' 1, 'rlig' 1" }}>
-‎                        چیتا / Çita Sayısı
+                        چیتا / Çita Sayısı
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                         <div style={{ background: "rgba(0,0,0,0.24)", borderRadius: 11, padding: "10px 13px" }}>
@@ -967,7 +987,7 @@
                 <div style={{ fontSize: 15, fontWeight: "bold", marginTop: 2 }}>حسابکردنی بڕینی پەرگۆلا / Pergola Kesim Listesi</div>
                 <div style={{ fontSize: 11, color: "#777", marginTop: 4 }}>
                   {customer && <><span>کریار / Müşteri: <b>{customer}</b></span> &nbsp;|&nbsp;</>}
-‎                  بەروار / Tarih: {today}
+                  بەروار / Tarih: {today}
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 14, fontSize: 12 }}>
